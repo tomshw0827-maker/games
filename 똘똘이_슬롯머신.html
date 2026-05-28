@@ -1,139 +1,165 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
- <meta charset="UTF-8" />
- <title>똘똘이 슬롯머신</title>
- <style>
- body {
- font-family: sans-serif;
- background: #ffe8a3;
- text-align: center;
- padding: 40px;
- }
-
- h1 {
- font-size: 36px;
- }
-
- .machine {
- background: #ff5c5c;
- border: 6px solid #222;
- border-radius: 24px;
- width: 360px;
- margin: 0 auto;
- padding: 24px;
- box-shadow: 0 8px 0 #222;
- }
-
- .slots {
- display: flex;
- justify-content: center;
- gap: 12px;
- margin: 24px 0;
- }
-
- .slot {
- width: 90px;
- height: 90px;
- background: white;
- border: 4px solid #222;
- border-radius: 16px;
- font-size: 48px;
- display: flex;
- align-items: center;
- justify-content: center;
- }
-
- button {
- font-size: 22px;
- padding: 12px 28px;
- border: 4px solid #222;
- border-radius: 14px;
- background: #ffd93d;
- cursor: pointer;
- box-shadow: 0 5px 0 #222;
- }
-
- button:active {
- transform: translateY(4px);
- box-shadow: 0 1px 0 #222;
- }
-
- .score {
- font-size: 22px;
- margin-top: 20px;
- }
-
- .message {
- font-size: 20px;
- margin-top: 18px;
- font-weight: bold;
- }
- </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>똘똘이 슬롯머신</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#ffecd2,#fcb69f);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+h1{font-size:34px;margin-bottom:20px;color:#333;text-shadow:2px 2px 0 rgba(255,255,255,0.5)}
+.machine{background:linear-gradient(180deg,#e63946,#c1121f);border:6px solid #222;border-radius:24px;width:380px;padding:28px 24px;box-shadow:0 10px 0 #222,0 15px 30px rgba(0,0,0,0.3);position:relative}
+.machine::before{content:'';position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:200px;height:16px;background:#ffd93d;border:4px solid #222;border-radius:20px}
+.slots{display:flex;justify-content:center;gap:12px;margin:28px 0}
+.slot{width:96px;height:96px;background:#fff;border:5px solid #222;border-radius:16px;font-size:52px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;box-shadow:inset 0 0 15px rgba(0,0,0,0.1);transition:transform 0.1s}
+.slot.spinning{animation:shake 0.1s infinite}
+@keyframes shake{0%,100%{transform:translateY(-2px)}50%{transform:translateY(2px)}}
+.slot.slow{animation:shakeSlow 0.15s infinite}
+@keyframes shakeSlow{0%,100%{transform:translateY(-1px)}50%{transform:translateY(1px)}}
+button{font-size:22px;padding:14px 32px;border:4px solid #222;border-radius:14px;background:linear-gradient(180deg,#ffd93d,#f9a825);cursor:pointer;box-shadow:0 6px 0 #222;font-weight:bold;color:#333;transition:all 0.05s;display:block;margin:0 auto}
+button:active{transform:translateY(4px);box-shadow:0 2px 0 #222}
+button:disabled{opacity:0.6;transform:translateY(4px);box-shadow:0 2px 0 #222;cursor:not-allowed}
+.score{font-size:20px;margin-top:18px;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,0.5);text-align:center}
+.score span{color:#ffd93d;font-weight:bold;font-size:24px}
+.message{font-size:18px;margin-top:14px;font-weight:bold;text-align:center;min-height:28px;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,0.5);padding:8px 16px;background:rgba(0,0,0,0.2);border-radius:12px;min-width:200px}
+.character{font-size:48px;margin-bottom:8px;display:block}
+</style>
 </head>
 <body>
 
- <h1>🎰 똘똘이 슬롯머신</h1>
+<h1>🎰 똘똘이 슬롯머신</h1>
 
- <div class="machine">
- <div class="slots">
- <div class="slot" id="slot1">🧢</div>
- <div class="slot" id="slot2">🍗</div>
- <div class="slot" id="slot3">🎮</div>
- </div>
+<div class="machine">
+  <div class="slots">
+    <div class="slot" id="slot1">🧢</div>
+    <div class="slot" id="slot2">🍗</div>
+    <div class="slot" id="slot3">🎮</div>
+  </div>
 
- <button onclick="spin()">돌려!</button>
+  <button id="spinBtn" onclick="spin()">🎰 돌려!</button>
 
- <div class="score">
- 아이스크림 포인트: <span id="points">100</span>
- </div>
+  <div class="score">
+    아이스크림 포인트: <span id="points">100</span>
+  </div>
 
- <div class="message" id="message">
- 야야야! 한 번 돌려봐!
- </div>
- </div>
+  <div class="message" id="message">
+    <span class="character">🧢</span> 야야야! 한 번 돌려봐!
+  </div>
+</div>
 
- <script>
- const items = ["🧢", "🍗", "🎮", "🍦", "🩹", "🪨", "🏹"];
- let points = 100;
+<script>
+const items = ["🧢", "🍗", "🎮", "🍦", "🩹", "🪨", "🏹"];
+const characters = {
+  "🧢": "똘똘이가 모자를 쓰고 왔다!",
+  "🍗": "치킨이다! 맛있겠다!",
+  "🎮": "게임 한 판?",
+  "🍦": "아이스크림! 내 최애!",
+  "🩹": "또 다쳤어...",
+  "🪨": "돌멩이... 뭐 어쩌라고",
+  "🏹": "활! 명중률 100%!"
+};
 
- function randomItem() {
- return items[Math.floor(Math.random() * items.length)];
- }
+let points = 100;
+let spinning = false;
 
- function spin() {
- if (points < 10) {
- document.getElementById("message").textContent =
- "에이~ 포인트가 없잖아!";
- return;
- }
+const el1 = document.getElementById('slot1');
+const el2 = document.getElementById('slot2');
+const el3 = document.getElementById('slot3');
+const msg = document.getElementById('message');
+const pts = document.getElementById('points');
+const btn = document.getElementById('spinBtn');
 
- points -= 10;
+function randomItem() {
+  return items[Math.floor(Math.random() * items.length)];
+}
 
- const slot1 = randomItem();
- const slot2 = randomItem();
- const slot3 = randomItem();
+function getCharacterText(item, isJackpot) {
+  if (isJackpot) {
+    if (item === "🧢") return "🧢 대박! 똘똘이가 모자를 던졌다! 잭팟이다아아~!";
+    if (item === "🍗") return "🍗 치킨이 3개?! 오늘은 치맥이다!";
+    if (item === "🎮") return "🎮 게임 3개! 신작 세트다!";
+    if (item === "🍦") return "🍦🍦🍦 아이스크림 트리플! 당뇨 조심!";
+    if (item === "🩹") return "🩹 반창고 3개! 완전 방어력 MAX!";
+    if (item === "🪨") return "🪨 돌멩이 3개? 이건 오히려 복이야!";
+    if (item === "🏹") return "🏹 활 3개! 나는야 명사수!";
+  }
+  return characters[item] || "뭘까 이건?";
+}
 
- document.getElementById("slot1").textContent = slot1;
- document.getElementById("slot2").textContent = slot2;
- document.getElementById("slot3").textContent = slot3;
+function spin() {
+  if (spinning) return;
+  if (points < 10) {
+    msg.innerHTML = '<span class="character">🩹</span> 에이~ 포인트가 없잖아!';
+    return;
+  }
 
- let message = "";
+  points -= 10;
+  pts.textContent = points;
+  spinning = true;
+  btn.disabled = true;
+  btn.textContent = "🔄 돌아가는 중...";
 
- if (slot1 === slot2 && slot2 === slot3) {
- points += 80;
- message = "대박! 내가 한 번 해냈지!";
- } else if (slot1 === slot2 || slot2 === slot3 || slot1 === slot3) {
- points += 25;
- message = "오! 두 개 맞았다!";
- } else {
- message = "졌다... 근데 이것도 내 실력이야!";
- }
+  el1.className = el2.className = el3.className = 'slot spinning';
+  msg.innerHTML = '<span class="character">🎰</span> 돌아간다 돌아간다~!';
 
- document.getElementById("points").textContent = points;
- document.getElementById("message").textContent = message;
- }
- </script>
+  // 결과는 미리 뽑아둠
+  const result1 = randomItem();
+  const result2 = randomItem();
+  const result3 = randomItem();
+
+  // 빠르게 돌리는 효과 (50ms 간격)
+  let count = 0;
+  const fastInterval = setInterval(() => {
+    el1.textContent = randomItem();
+    el2.textContent = randomItem();
+    el3.textContent = randomItem();
+    count++;
+    if (count >= 10) {
+      clearInterval(fastInterval);
+
+      // 슬롯1 멈춤
+      el1.textContent = result1;
+      el1.className = 'slot slow';
+      msg.innerHTML = '<span class="character">👀</span> 첫 번째! 두근두근...';
+
+      setTimeout(() => {
+        // 슬롯2 멈춤
+        el2.textContent = result2;
+        el2.className = 'slot slow';
+        msg.innerHTML = '<span class="character">🤞</span> 두 번째! 하나만 더!';
+
+        setTimeout(() => {
+          // 슬롯3 멈춤
+          el3.textContent = result3;
+          el3.className = 'slot';
+
+          // 결과 판정
+          const jackpot = result1 === result2 && result2 === result3;
+          let message = "";
+          let bonus = 0;
+
+          if (jackpot) {
+            bonus = 80;
+            message = getCharacterText(result1, true);
+          } else if (result1 === result2 || result2 === result3 || result1 === result3) {
+            bonus = 25;
+            message = getCharacterText(result1 || result2, false) + ' (2개 맞음! +25P)';
+          } else {
+            message = "졌다... 근데 이것도 내 실력이야! (-10P)";
+          }
+
+          points += bonus;
+          pts.textContent = points;
+          msg.innerHTML = `<span class="character">${jackpot ? '🎉' : result1}</span> ${message}`;
+          spinning = false;
+          btn.disabled = false;
+          btn.textContent = "🎰 돌려!";
+        }, 400);
+      }, 400);
+    }
+  }, 50);
+}
+</script>
 
 </body>
 </html>
