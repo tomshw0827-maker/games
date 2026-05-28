@@ -8,21 +8,29 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#ffecd2,#fcb69f);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 h1{font-size:34px;margin-bottom:20px;color:#333;text-shadow:2px 2px 0 rgba(255,255,255,0.5)}
-.machine{background:linear-gradient(180deg,#e63946,#c1121f);border:6px solid #222;border-radius:24px;width:380px;padding:28px 24px;box-shadow:0 10px 0 #222,0 15px 30px rgba(0,0,0,0.3);position:relative}
+.machine{background:linear-gradient(180deg,#e63946,#c1121f);border:6px solid #222;border-radius:24px;width:400px;padding:28px 24px;box-shadow:0 10px 0 #222,0 15px 30px rgba(0,0,0,0.3);position:relative}
 .machine::before{content:'';position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:200px;height:16px;background:#ffd93d;border:4px solid #222;border-radius:20px}
-.slots{display:flex;justify-content:center;gap:12px;margin:28px 0}
-.slot{width:96px;height:96px;background:#fff;border:5px solid #222;border-radius:16px;font-size:52px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;box-shadow:inset 0 0 15px rgba(0,0,0,0.1);transition:transform 0.1s}
-.slot.spinning{animation:shake 0.1s infinite}
-@keyframes shake{0%,100%{transform:translateY(-2px)}50%{transform:translateY(2px)}}
-.slot.slow{animation:shakeSlow 0.15s infinite}
-@keyframes shakeSlow{0%,100%{transform:translateY(-1px)}50%{transform:translateY(1px)}}
+
+/* 슬롯 릴 컨테이너 */
+.slots{display:flex;justify-content:center;gap:10px;margin:28px 0;background:#0a0a1a;border:4px solid #222;border-radius:16px;padding:12px;box-shadow:inset 0 0 20px rgba(0,0,0,0.5)}
+
+/* 각 릴: 보이는 영역 */
+.reel{width:96px;height:96px;overflow:hidden;position:relative;background:#fff;border:3px solid #333;border-radius:12px;box-shadow:inset 0 0 15px rgba(0,0,0,0.15)}
+
+/* 릴 내부 스트립: 여러 심볼이 세로로 쌓임 */
+.reel-strip{position:absolute;top:0;left:0;width:100%;will-change:transform;transition:none}
+.reel-strip div{width:96px;height:96px;display:flex;align-items:center;justify-content:center;font-size:52px}
+
+/* 릴 상단/하단 그림자 효과 */
+.reel::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0.25) 0%,transparent 30%,transparent 70%,rgba(0,0,0,0.25) 100%);border-radius:12px}
+
 button{font-size:22px;padding:14px 32px;border:4px solid #222;border-radius:14px;background:linear-gradient(180deg,#ffd93d,#f9a825);cursor:pointer;box-shadow:0 6px 0 #222;font-weight:bold;color:#333;transition:all 0.05s;display:block;margin:0 auto}
 button:active{transform:translateY(4px);box-shadow:0 2px 0 #222}
 button:disabled{opacity:0.6;transform:translateY(4px);box-shadow:0 2px 0 #222;cursor:not-allowed}
 .score{font-size:20px;margin-top:18px;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,0.5);text-align:center}
 .score span{color:#ffd93d;font-weight:bold;font-size:24px}
-.message{font-size:18px;margin-top:14px;font-weight:bold;text-align:center;min-height:28px;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,0.5);padding:8px 16px;background:rgba(0,0,0,0.2);border-radius:12px;min-width:200px}
-.character{font-size:48px;margin-bottom:8px;display:block}
+.message{font-size:18px;margin-top:14px;font-weight:bold;text-align:center;min-height:50px;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,0.5);padding:8px 16px;background:rgba(0,0,0,0.2);border-radius:12px;min-width:200px;line-height:1.4}
+.character{font-size:48px;margin-bottom:4px;display:block}
 </style>
 </head>
 <body>
@@ -31,9 +39,9 @@ button:disabled{opacity:0.6;transform:translateY(4px);box-shadow:0 2px 0 #222;cu
 
 <div class="machine">
   <div class="slots">
-    <div class="slot" id="slot1">🧢</div>
-    <div class="slot" id="slot2">🍗</div>
-    <div class="slot" id="slot3">🎮</div>
+    <div class="reel" id="reel1"><div class="reel-strip" id="strip1"></div></div>
+    <div class="reel" id="reel2"><div class="reel-strip" id="strip2"></div></div>
+    <div class="reel" id="reel3"><div class="reel-strip" id="strip3"></div></div>
   </div>
 
   <button id="spinBtn" onclick="spin()">🎰 돌려!</button>
@@ -61,13 +69,7 @@ const characters = {
 
 let points = 100;
 let spinning = false;
-
-const el1 = document.getElementById('slot1');
-const el2 = document.getElementById('slot2');
-const el3 = document.getElementById('slot3');
-const msg = document.getElementById('message');
-const pts = document.getElementById('points');
-const btn = document.getElementById('spinBtn');
+const ITEM_H = 96; // 한 심볼 높이
 
 function randomItem() {
   return items[Math.floor(Math.random() * items.length)];
@@ -75,89 +77,144 @@ function randomItem() {
 
 function getCharacterText(item, isJackpot) {
   if (isJackpot) {
-    if (item === "🧢") return "🧢 대박! 똘똘이가 모자를 던졌다! 잭팟이다아아~!";
-    if (item === "🍗") return "🍗 치킨이 3개?! 오늘은 치맥이다!";
-    if (item === "🎮") return "🎮 게임 3개! 신작 세트다!";
-    if (item === "🍦") return "🍦🍦🍦 아이스크림 트리플! 당뇨 조심!";
-    if (item === "🩹") return "🩹 반창고 3개! 완전 방어력 MAX!";
-    if (item === "🪨") return "🪨 돌멩이 3개? 이건 오히려 복이야!";
-    if (item === "🏹") return "🏹 활 3개! 나는야 명사수!";
+    const jackpotMsgs = {
+      "🧢": "🧢 대박! 똘똘이가 모자를 던졌다! 잭팟이다아아~! +80P",
+      "🍗": "🍗 치킨이 3개?! 오늘은 치맥이다! +80P",
+      "🎮": "🎮 게임 3개! 신작 세트다! +80P",
+      "🍦": "🍦🍦🍦 아이스크림 트리플! 당뇨 조심! +80P",
+      "🩹": "🩹 반창고 3개! 완전 방어력 MAX! +80P",
+      "🪨": "🪨 돌멩이 3개? 이건 오히려 복이야! +80P",
+      "🏹": "🏹 활 3개! 나는야 명사수! +80P"
+    };
+    return jackpotMsgs[item] || "🎉 잭팟! +80P";
   }
-  return characters[item] || "뭘까 이건?";
+  return (characters[item] || "뭘까 이건?");
+}
+
+/* 릴 스트립 생성: 심볼들을 여러 번 반복해 긴 리스트로 만듦 */
+function buildStrip(targetEl, finalSymbol) {
+  // 총 30개 심볼: 랜덤 29개 + 마지막에 finalSymbol
+  let symbols = [];
+  for (let i = 0; i < 29; i++) {
+    symbols.push(randomItem());
+  }
+  symbols.push(finalSymbol); // 마지막에 멈출 심볼
+  targetEl.innerHTML = symbols.map(s => `<div>${s}</div>`).join('');
+}
+
+/* 릴 자연스럽게 멈추기: ease-out transition */
+function stopReel(stripEl, idx, callback) {
+  // 최종 위치: 스트립 제일 마지막(30번째) 심볼이 보이는 위치로
+  // 30개 심볼 높이 - 한 칸 = 29 * 96 = 2784
+  const finalOffset = -(29 * ITEM_H);
+  stripEl.style.transition = 'transform 0.6s cubic-bezier(0.15, 0.8, 0.25, 1)';
+  stripEl.style.transform = `translateY(${finalOffset}px)`;
+  setTimeout(callback, 700);
+}
+
+/* 릴 빨리 돌리기: transition 없이 위치 루프 */
+function fastSpinStrip(stripEl, duration, finalSymbol, callback) {
+  buildStrip(stripEl, finalSymbol);
+  stripEl.style.transition = 'none';
+  
+  const SPIN_CYCLES = 30;
+  let step = 0;
+  const interval = setInterval(() => {
+    const offset = -(step * ITEM_H);
+    stripEl.style.transform = `translateY(${offset}px)`;
+    step++;
+    if (step >= SPIN_CYCLES) {
+      clearInterval(interval);
+      // 마지막 한 바퀴 더 빠르게
+      stripEl.style.transition = 'none';
+      stripEl.style.transform = 'translateY(0px)';
+      callback();
+    }
+  }, duration / SPIN_CYCLES);
 }
 
 function spin() {
   if (spinning) return;
   if (points < 10) {
-    msg.innerHTML = '<span class="character">🩹</span> 에이~ 포인트가 없잖아!';
+    document.getElementById('message').innerHTML = '<span class="character">🩹</span> 에이~ 포인트가 없잖아!';
     return;
   }
 
   points -= 10;
-  pts.textContent = points;
+  document.getElementById('points').textContent = points;
   spinning = true;
+  const btn = document.getElementById('spinBtn');
   btn.disabled = true;
   btn.textContent = "🔄 돌아가는 중...";
+  document.getElementById('message').innerHTML = '<span class="character">🎰</span> 돌아간다 돌아간다~!';
 
-  el1.className = el2.className = el3.className = 'slot spinning';
-  msg.innerHTML = '<span class="character">🎰</span> 돌아간다 돌아간다~!';
-
-  // 결과는 미리 뽑아둠
   const result1 = randomItem();
   const result2 = randomItem();
   const result3 = randomItem();
 
-  // 빠르게 돌리는 효과 (50ms 간격)
-  let count = 0;
-  const fastInterval = setInterval(() => {
-    el1.textContent = randomItem();
-    el2.textContent = randomItem();
-    el3.textContent = randomItem();
-    count++;
-    if (count >= 10) {
-      clearInterval(fastInterval);
+  const s1 = document.getElementById('strip1');
+  const s2 = document.getElementById('strip2');
+  const s3 = document.getElementById('strip3');
 
-      // 슬롯1 멈춤
-      el1.textContent = result1;
-      el1.className = 'slot slow';
-      msg.innerHTML = '<span class="character">👀</span> 첫 번째! 두근두근...';
-
-      setTimeout(() => {
-        // 슬롯2 멈춤
-        el2.textContent = result2;
-        el2.className = 'slot slow';
-        msg.innerHTML = '<span class="character">🤞</span> 두 번째! 하나만 더!';
-
-        setTimeout(() => {
-          // 슬롯3 멈춤
-          el3.textContent = result3;
-          el3.className = 'slot';
-
-          // 결과 판정
-          const jackpot = result1 === result2 && result2 === result3;
-          let message = "";
-          let bonus = 0;
-
-          if (jackpot) {
-            bonus = 80;
-            message = getCharacterText(result1, true);
-          } else if (result1 === result2 || result2 === result3 || result1 === result3) {
-            bonus = 25;
-            message = getCharacterText(result1 || result2, false) + ' (2개 맞음! +25P)';
-          } else {
-            message = "졌다... 근데 이것도 내 실력이야! (-10P)";
-          }
-
-          points += bonus;
-          pts.textContent = points;
-          msg.innerHTML = `<span class="character">${jackpot ? '🎉' : result1}</span> ${message}`;
-          spinning = false;
-          btn.disabled = false;
-          btn.textContent = "🎰 돌려!";
-        }, 400);
-      }, 400);
+  // 모든 릴 동시에 빨리 돌리기 시작
+  const SPIN_MS = 800;
+  let ready = 0;
+  
+  function onReelReady() {
+    ready++;
+    if (ready === 3) {
+      // 슬롯1 정지
+      document.getElementById('message').innerHTML = '<span class="character">👀</span> 첫 번째! 두근두근...';
+      s1.style.transition = 'none';
+      buildStrip(s1, result1);
+      s1.style.transform = 'translateY(0px)';
+      // 강제 리플로우
+      void s1.offsetHeight;
+      stopReel(s1, 0, () => {
+        // 슬롯2 정지
+        document.getElementById('message').innerHTML = '<span class="character">🤞</span> 두 번째! 하나만 더!';
+        s2.style.transition = 'none';
+        buildStrip(s2, result2);
+        s2.style.transform = 'translateY(0px)';
+        void s2.offsetHeight;
+        stopReel(s2, 1, () => {
+          // 슬롯3 정지
+          s3.style.transition = 'none';
+          buildStrip(s3, result3);
+          s3.style.transform = 'translateY(0px)';
+          void s3.offsetHeight;
+          stopReel(s3, 2, () => {
+            // 결과 판정
+            const jackpot = result1 === result2 && result2 === result3;
+            let bonus = 0;
+            let msg = "";
+            
+            if (jackpot) {
+              bonus = 80;
+              msg = getCharacterText(result1, true);
+            } else if (result1 === result2 || result2 === result3 || result1 === result3) {
+              bonus = 25;
+              msg = getCharacterText(result1 || result2, false) + ' (2개 맞음! +25P)';
+            } else {
+              msg = "졌다... 근데 이것도 내 실력이야! (-10P)";
+            }
+            
+            points += bonus;
+            document.getElementById('points').textContent = points;
+            document.getElementById('message').innerHTML = `<span class="character">${jackpot ? '🎉' : result1}</span> ${msg}`;
+            spinning = false;
+            btn.disabled = false;
+            btn.textContent = "🎰 돌려!";
+          });
+        });
+      });
     }
-  }, 50);
+  }
+
+  // 각 릴 독립적으로 고속 회전 시작
+  fastSpinStrip(s1, SPIN_MS, result1, onReelReady);
+  fastSpinStrip(s2, SPIN_MS, result2, onReelReady);
+  fastSpinStrip(s3, SPIN_MS, result3, onReelReady);
 }
 </script>
 
