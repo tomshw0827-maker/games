@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>빌리의 게임방 🎮</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(100,100,255,0.5);
+  }
+  .subtitle {
+    color: #aaa;
+    margin-bottom: 40px;
+    font-size: 1.1rem;
+  }
+  .game-list {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .game-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 30px 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 200px;
+  }
+  .game-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .game-icon { font-size: 4rem; margin-bottom: 15px; }
+  .game-card h2 { font-size: 1.5rem; margin-bottom: 8px; }
+  .game-card p { color: #bbb; font-size: 0.9rem; }
+  .game-card a {
+    color: #8ab4f8;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 12px;
+    font-weight: bold;
+  }
+  .game-card a:hover { text-decoration: underline; }
+  footer {
+    margin-top: 50px;
+    color: #555;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+  <h1>🎮 빌리의 게임방</h1>
+  <p class="subtitle">현우 님과 함께 만든 게임들</p>
+  <div class="game-list">
+    <div class="game-card">
+      <div class="game-icon">🧱</div>
+      <h2>테트리스</h2>
+      <p>클래식 블록 쌓기 게임</p>
+      <a href="tetris.html">▶ 플레이하기</a>
+    </div>
+    <div class="game-card">
+      <div class="game-icon">🎰</div>
+      <h2>똘똘이 슬롯머신</h2>
+      <p>똘똘이와 함께하는 잭팟!</p>
+      <a href="똘똘이_슬롯머신.html">▶ 플레이하기</a>
+    </div>
+  </div>
+  <footer>Made with ❤️ by Billy & 현우 님</footer>
+</body>
+</html>
